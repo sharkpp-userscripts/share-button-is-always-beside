@@ -221,7 +221,12 @@
         overlayElm.style.display = 'none';
     };
 
+    var selectedText = '', selectedRange;
+
     var onSharePanelShow = function () {
+        if (selectedText = window.getSelection().toString()) {
+            selectedText = '『' + selectedText + '』 ';
+        }
         var top = Math.max(100 - document.body.scrollTop, 10);
         var isSticky = top <= 10;
         var state = (isSticky?'stick':'inital')+'Open';
@@ -248,7 +253,15 @@
         overlayElm.style.display = 'none';
     };
 
+    baseElm.addEventListener('mousedown', function () {
+        selectedRange = 0 < window.getSelection().rangeCount ? window.getSelection().getRangeAt(0) : null;
+        console.log(window.getSelection().toString());
+    });
     baseElm.addEventListener('click', function () {
+        if (selectedRange) {
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(selectedRange.cloneRange());
+        }
         ('none' != panelOpenElm.style.display ? onSharePanelShow : onSharePanelHide)();
     });
 
@@ -257,12 +270,12 @@
     var title = (document.getElementsByTagName('title')[0]||{}).innerHTML||'';
 
     var shareInfo = {
-        twitter:    { popup: true,  caption: 'Twitter でつぶやく', url: 'http://twitter.com/share?text='+title+'&amp;url='+location.href },
-        facebook:   { popup: true,  caption: 'Facebookで共有',     url: 'http://www.facebook.com/sharer.php?u='+location.href+'&amp;t='+title },
-        hatena:     { popup: true,  caption: 'はてなブックマーク', url: 'http://b.hatena.ne.jp/entry/panel/?url='+location.href+'&amp;btitle='+title },
-        pocket:     { popup: true,  caption: 'Pocketに追加',       url: 'http://getpocket.com/edit?url='+location.href+'&amp;title='+title },
+        twitter:    { popup: true,  caption: 'Twitter でつぶやく', url: 'http://twitter.com/share?text={title}&amp;url='+location.href },
+        facebook:   { popup: true,  caption: 'Facebookで共有',     url: 'http://www.facebook.com/sharer.php?u='+location.href+'&amp;t={title}' },
+        hatena:     { popup: true,  caption: 'はてなブックマーク', url: 'http://b.hatena.ne.jp/entry/panel/?url='+location.href+'&amp;btitle={title}' },
+        pocket:     { popup: true,  caption: 'Pocketに追加',       url: 'http://getpocket.com/edit?url='+location.href+'&amp;title={title}' },
         googleplus: { popup: true,  caption: 'Google+で共有',      url: 'https://plus.google.com/share?url='+location.href },
-        mail:       { popup: false, caption: 'メール送信',         url: 'mailto:?subject='+title+'&amp;body='+location.href },
+        mail:       { popup: false, caption: 'メール送信',         url: 'mailto:?subject={title}&amp;body='+location.href },
     };
 
     for (var service in shareInfo) {
@@ -277,7 +290,11 @@
         }
         else {
             buttonLink.href      = 'javascript:void(0);';
-            buttonLink.onclick   = function(shareInfo){ window.open(shareInfo.url,NS+'share-popup','width=640,height=480'); }.bind(null, shareInfo[service]);
+            buttonLink.onclick   = function(shareInfo){
+                window.open(shareInfo.url.replace('{title}', selectedText+title),
+                            NS+'share-popup',
+                            'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,width=640,height=480');
+            }.bind(null, shareInfo[service]);
         }
         buttonLink.style.cssText = [
             'position: relative;',
