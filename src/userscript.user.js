@@ -5,18 +5,18 @@
 // @description  Append share button in all pages.
 // @author       sharkpp
 // @include      *
-// @exclude     https://twitter.com/*
-// @exclude     https://www.google.co.jp/_/chrome/newtab*
+// @exclude      https://www.google.co.jp/_/chrome/newtab*
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    if (window != parent) { // exit when if loaded in iframe
+    var NS = 'sns-share-button-for-all-pages-';
+
+    if (window != parent || // exit when if loaded in iframe
+        NS+'share-popup' == window.name) { // exit when if call from popup windows
         return;
     }
-
-    var NS = 'sns-share-button-for-all-pages-';
 
     var evaluate_ = function (xpath, resultOnce) {
         resultOnce = 'undefined' == typeof resultOnce ? false : resultOnce;
@@ -24,7 +24,6 @@
         return resultOnce ? (items.snapshotLength ? items.snapshotItem(0) : null)
                           : items;
     };
-    //console.log(evaluate_('//a[starts-with(@href, "https://twitter.com/share")]',true));
 
     var applyStyles = function (elm, styles, overwriteStyles) {
         overwriteStyles = overwriteStyles || {};
@@ -40,16 +39,18 @@
             width:        '30px',
             height:       '50px',
             borderRadius: '0 2px 2px 0',
-        　　　　padding: '2px',
-            transition: ''
+            padding:      '2px',
+            opacity:      '0.6',
+            transition:   ''
         },
         initalOpen: {
             left:         '10px',
             width:        'auto',
             height:       'auto',
             borderRadius: '3px',
-        　　　　padding: '6px',
-            transition: ''
+            padding:      '6px',
+            opacity:      '1',
+            transition:   ''
         },
         stick: {
             top:          '-1px',
@@ -57,7 +58,8 @@
             width:        '50px',
             height:       '50px',
             borderRadius: '0 0 50px 0',
-        　　　　padding: '2px',
+            padding:      '2px',
+            opacity:      '0.6',
             transition:   ''
         },
         stickOpen: {
@@ -66,7 +68,8 @@
             width:        'auto',
             height:       'auto',
             borderRadius: '3px',
-        　　　　padding: '6px',
+            padding:      '6px',
+            opacity:      '1',
             transition:   ''
         },
     };
@@ -174,9 +177,22 @@
     shareElm.style.cssText = [
     ].join(" ");
 
+    var overlayElm = document.createElement('div');
+    overlayElm.id = NS+'overlay';
+    overlayElm.style.cssText = [
+        'display: none;',
+        'position: fixed;',
+        'width: 100%;',
+        'height: 100%;',
+        'left: 0;',
+        'top: 0;',
+        'opacity: 1;',
+    ].join(" ");
+
     baseElm.appendChild(shareElm);
     baseElm.appendChild(panelOpenElm);
     baseElm.appendChild(panelCloseElm);
+    document.body.appendChild(overlayElm);
 
     var onDocumentScroll = function(){
         //console.log(document.body.scrollTop, (Math.max(100 - document.body.scrollTop, 10)));
@@ -200,8 +216,9 @@
         applyStyles(panelOpenElm,  panelOpenElmStyles[state]);
         applyStyles(panelCloseElm, panelCloseElmStyles[state]);
         applyStyles(shareElm,      shareElmStyles[state]);
+        overlayElm.style.display = 'none';
     };
-    
+
     var onSharePanelShow = function () {
         var top = Math.max(100 - document.body.scrollTop, 10);
         var isSticky = top <= 10;
@@ -212,7 +229,9 @@
         applyStyles(panelOpenElm,  panelOpenElmStyles[state]);
         applyStyles(panelCloseElm, panelCloseElmStyles[state]);
         applyStyles(shareElm,      shareElmStyles[state]);
+        overlayElm.style.display = 'block';
     };
+
     var onSharePanelHide = function () {
         var top = Math.max(100 - document.body.scrollTop, 10);
         var isSticky = top <= 10;
@@ -224,40 +243,67 @@
         applyStyles(panelOpenElm,  panelOpenElmStyles[state]);
         applyStyles(panelCloseElm, panelCloseElmStyles[state]);
         applyStyles(shareElm,      shareElmStyles[state]);
+        overlayElm.style.display = 'none';
     };
-    var onClick = function () {
+
+    baseElm.addEventListener('click', function () {
         ('none' != panelOpenElm.style.display ? onSharePanelShow : onSharePanelHide)();
+    });
+
+    overlayElm.addEventListener('click', onSharePanelHide);
+
+    var title = (document.getElementsByTagName('title')[0]||{}).innerHTML||'';
+
+    var shareInfo = {
+        twitter:    { popup: true,  caption: 'Twitter でつぶやく', url: 'http://twitter.com/share?text='+title+'&amp;url='+location.href },
+        facebook:   { popup: true,  caption: 'Facebookで共有',     url: 'http://www.facebook.com/sharer.php?u='+location.href+'&amp;t='+title },
+        hatena:     { popup: true,  caption: 'はてなブックマーク', url: 'http://b.hatena.ne.jp/entry/panel/?url='+location.href+'&amp;btitle='+title },
+        pocket:     { popup: true,  caption: 'Pocketに追加',       url: 'http://getpocket.com/edit?url='+location.href+'&amp;title='+title },
+        googleplus: { popup: true,  caption: 'Google+で共有',      url: 'https://plus.google.com/share?url='+location.href },
+        mail:       { popup: false, caption: 'メール送信',         url: 'mailto:?subject='+title+'&amp;body='+location.href },
     };
 
-    baseElm.addEventListener('click', onClick);
-
-    // Twitter
-    var buttonTweet = document.createElement('div');
-    buttonTweet.style.cssText = '';
-    var buttonTweetA = document.createElement('a');
-    (function(data){ for (var k in data) { this.setAttribute(k, data[k]); } }).call(buttonTweetA, {
-        href: 'https://twitter.com/share',
-        class: 'twitter-share-button',
-        'data-url': location.href,
-    });
-    buttonTweetA.innerHTML = 'Tweet';
-    buttonTweet.appendChild(buttonTweetA);
-    var buttonTweetScript = document.createElement('script');
-    buttonTweetScript.innerHTML = [
-        "!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';",
-        "if(!d.getElementById(id)){js=d.createElement(s);",
-        "js.id=id;",
-        "js.src=p+'://platform.twitter.com/widgets.js';",
-        "fjs.parentNode.insertBefore(js,fjs);",
-        "}}(document, 'script', 'twitter-wjs');"
-    ].join('');
-    buttonTweet.appendChild(buttonTweetScript);
-    shareElm.appendChild(buttonTweet);
+    for (var service in shareInfo) {
+        var button = document.createElement('div');
+        button.style.cssText = [
+            'margin-bottom: 5px;',
+        ].join(" ");
+        var buttonLink = document.createElement('a');
+        buttonLink.innerHTML = shareInfo[service].caption;
+        if (!shareInfo[service].popup) {
+            buttonLink.href = shareInfo[service].url;
+        }
+        else {
+            buttonLink.href      = 'javascript:void(0);';
+            buttonLink.onclick   = function(shareInfo){ window.open(shareInfo.url,NS+'share-popup','width=640,height=480'); }.bind(null, shareInfo[service]);
+        }
+        buttonLink.style.cssText = [
+            'position: relative;',
+            'display: inline-block;',
+            'text-align: center;',
+            'background-color: #1a9cbc;',
+            'border-radius: 4px;',
+            'color: #fff;',
+            'line-height: 52px;',
+            '-webkit-transition: none;',
+            'transition: none;',
+            'box-shadow: 0 3px 0 #0e738c;',
+            'text-shadow: 0 1px 1px rgba(0, 0, 0, .3);',
+            'width: 100%;',
+            'height: 100%;',
+            'line-height: 100%;',
+            'padding: 5px;',
+            'text-decoration: none;',
+        ].join(" ");
+        buttonLink.onmouseover = function () { this.style.top = '0px'; this.style.backgroundColor = '#31aac8'; this.style.boxShadow = '0 3px 0 #2388a1'; };
+        buttonLink.onmouseout  = function () { this.style.top = '0px'; this.style.backgroundColor = '#1a9cbc'; this.style.boxShadow = '0 3px 0 #0e738c'; };
+        buttonLink.onmousedown = function () { this.style.top = '3px'; this.style.boxShadow = 'none'; };
+        buttonLink.onmouseup   = function () { this.style.top = '0px'; this.style.backgroundColor = '#1a9cbc'; this.style.boxShadow = '0 3px 0 #0e738c'; };
+        button.appendChild(buttonLink);
+        shareElm.appendChild(button);
+    }
 
     document.body.appendChild(baseElm);
-
-    //buttonTweetA.click();
-    //console.log([baseElm]);
 
     document.addEventListener('scroll', onDocumentScroll);
     onSharePanelHide();
