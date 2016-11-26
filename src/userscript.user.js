@@ -140,6 +140,8 @@
     baseElm.id = NS + 'base';
     baseElm.style.cssText = [
         'box-sizing: border-box;',
+        'width: 0;',
+        'height: 0;',
         'position: fixed;',
         'background-color: #fff;',
         'border: 1px solid #ccc;',
@@ -280,6 +282,7 @@
         buttonLink.style.cssText = [
             'position: relative;',
             'display: inline-block;',
+            'box-sizing: border-box;',
             'text-align: center;',
             'background-color: #1a9cbc;',
             'border-radius: 4px;',
