@@ -1,11 +1,13 @@
 // ==UserScript==
-// @name         share button is always beside
-// @namespace    http://www.sharkpp.net/
-// @version      0.1
-// @description  Append share button in all pages.
-// @author       sharkpp
-// @include      *
-// @exclude      https://www.google.co.jp/_/chrome/newtab*
+// @name        share button is always beside
+// @namespace   http://www.sharkpp.net/
+// @version     0.1
+// @description Append share button in all pages.
+// @author      sharkpp
+// @copyright   2016, sharkpp
+// @license     MIT License
+// @include     *
+// @exclude     https://www.google.co.jp/_/chrome/newtab*
 // ==/UserScript==
 
 (function() {
