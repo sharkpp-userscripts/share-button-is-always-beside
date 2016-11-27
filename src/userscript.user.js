@@ -197,8 +197,6 @@
     document.body.appendChild(overlayElm);
 
     var onDocumentScroll = function(){
-        //console.log(document.body.scrollTop, (Math.max(100 - document.body.scrollTop, 10)));
-        //baseElm.style.top = ''+(Math.max(100 - document.body.scrollTop, 10))+'px';
         var prevTop = parseInt(baseElm.style.top);
         var top = Math.max(100 - document.body.scrollTop, 10);
         var isSticky = top <= 10;
@@ -255,7 +253,6 @@
 
     baseElm.addEventListener('mousedown', function () {
         selectedRange = 0 < window.getSelection().rangeCount ? window.getSelection().getRangeAt(0) : null;
-        console.log(window.getSelection().toString());
     });
     baseElm.addEventListener('click', function () {
         if (selectedRange) {
