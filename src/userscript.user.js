@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        share button is always beside
 // @namespace   http://www.sharkpp.net/
-// @version     0.1
+// @version     0.2
 // @description Append share button in all pages.
 // @author      sharkpp
 // @copyright   2016, sharkpp
@@ -224,7 +224,7 @@
     var selectedText = '', selectedRange;
 
     var onSharePanelShow = function () {
-        if (selectedText = window.getSelection().toString()) {
+        if ((selectedText = window.getSelection().toString())) {
             selectedText = '『' + selectedText + '』 ';
         }
         var top = Math.max(100 - document.body.scrollTop, 10);
@@ -269,12 +269,12 @@
     var title = (document.getElementsByTagName('title')[0]||{}).innerHTML||'';
 
     var shareInfo = {
-        twitter:    { popup: true,  caption: 'Twitter でつぶやく', url: 'http://twitter.com/share?text={title}&amp;url='+location.href },
-        facebook:   { popup: true,  caption: 'Facebookで共有',     url: 'http://www.facebook.com/sharer.php?u='+location.href+'&amp;t={title}' },
-        hatena:     { popup: true,  caption: 'はてなブックマーク', url: 'http://b.hatena.ne.jp/entry/panel/?url='+location.href+'&amp;btitle={title}' },
-        pocket:     { popup: true,  caption: 'Pocketに追加',       url: 'http://getpocket.com/edit?url='+location.href+'&amp;title={title}' },
-        googleplus: { popup: true,  caption: 'Google+で共有',      url: 'https://plus.google.com/share?url='+location.href },
-        mail:       { popup: false, caption: 'メール送信',         url: 'mailto:?subject={title}&amp;body='+location.href },
+        twitter:    { popup: true,  caption: 'Twitter でつぶやく', url: 'http://twitter.com/share?text={title}&amp;url={url}' },
+        facebook:   { popup: true,  caption: 'Facebookで共有',     url: 'http://www.facebook.com/sharer.php?u={url}&amp;t={title}' },
+        hatena:     { popup: true,  caption: 'はてなブックマーク', url: 'http://b.hatena.ne.jp/entry/panel/?url={url}&amp;btitle={title}' },
+        pocket:     { popup: true,  caption: 'Pocketに追加',       url: 'http://getpocket.com/edit?url={url}&amp;title={title}' },
+        googleplus: { popup: true,  caption: 'Google+で共有',      url: 'https://plus.google.com/share?url={url}' },
+        mail:       { popup: false, caption: 'メール送信',         url: 'mailto:?subject={title}&amp;body={url}' },
     };
 
     for (var service in shareInfo) {
@@ -290,7 +290,9 @@
         else {
             buttonLink.href      = 'javascript:void(0);';
             buttonLink.onclick   = function(shareInfo){
-                window.open(shareInfo.url.replace('{title}', selectedText+title),
+                window.open(shareInfo.url
+                              .replace('{url}', encodeURIComponent(location.href))
+                              .replace('{title}', encodeURIComponent(selectedText+title)),
                             NS+'share-popup',
                             'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,width=640,height=480');
             }.bind(null, shareInfo[service]);
