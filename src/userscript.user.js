@@ -269,15 +269,19 @@
     var title = (document.getElementsByTagName('title')[0]||{}).innerHTML||'';
 
     var shareInfo = {
-        twitter:    { popup: true,  caption: 'Twitter でつぶやく', url: 'http://twitter.com/share?text={title}&amp;url={url}' },
+        twitter:    { popup: true,  caption: 'Twitter でつぶやく', url: 'http://twitter.com/share?text={seltext}{title}&amp;url={url}' },
         facebook:   { popup: true,  caption: 'Facebookで共有',     url: 'http://www.facebook.com/sharer.php?u={url}&amp;t={title}' },
         hatena:     { popup: true,  caption: 'はてなブックマーク', url: 'http://b.hatena.ne.jp/entry/panel/?url={url}&amp;btitle={title}' },
         pocket:     { popup: true,  caption: 'Pocketに追加',       url: 'http://getpocket.com/edit?url={url}&amp;title={title}' },
         googleplus: { popup: true,  caption: 'Google+で共有',      url: 'https://plus.google.com/share?url={url}' },
-        mail:       { popup: false, caption: 'メール送信',         url: 'mailto:?subject={title}&amp;body={url}' },
+        mail:       { popup: false, caption: 'メール送信',         url: 'mailto:?subject={title}&amp;body={url}%0D%0A{seltext}' },
     };
 
     for (var service in shareInfo) {
+        var shareLink = shareInfo[service].url
+                            .replace('{url}', encodeURIComponent(location.href))
+                            .replace('{seltext}', encodeURIComponent(selectedText || ''))
+                            .replace('{title}', encodeURIComponent(title || ''));
         var button = document.createElement('div');
         button.style.cssText = [
             'margin-bottom: 5px;',
@@ -285,17 +289,15 @@
         var buttonLink = document.createElement('a');
         buttonLink.innerHTML = shareInfo[service].caption;
         if (!shareInfo[service].popup) {
-            buttonLink.href = shareInfo[service].url;
+            buttonLink.href = shareLink;
         }
         else {
             buttonLink.href      = 'javascript:void(0);';
-            buttonLink.onclick   = function(shareInfo){
-                window.open(shareInfo.url
-                              .replace('{url}', encodeURIComponent(location.href))
-                              .replace('{title}', encodeURIComponent(selectedText+title)),
+            buttonLink.onclick   = function(shareLink){
+                window.open(shareLink,
                             NS+'share-popup',
                             'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,width=640,height=480');
-            }.bind(null, shareInfo[service]);
+            }.bind(null, shareLink);
         }
         buttonLink.style.cssText = [
             'position: relative;',
